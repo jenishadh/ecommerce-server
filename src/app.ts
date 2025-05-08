@@ -4,6 +4,9 @@ import helmet from "helmet";
 import cors from "cors";
 
 import { corsOrigin } from "./config";
+import { catchError } from "./middlewares/catch-error";
+/*IMPORT ROUTES*/
+import healthCheckRouter from "./app/healthcheck";
 
 const app: Express = express();
 
@@ -27,5 +30,9 @@ app.get("/", (req, res) => {
     status: "success",
   });
 });
+
+app.use("/api/v1/healthcheck", healthCheckRouter);
+
+app.use(catchError);
 
 export default app;
