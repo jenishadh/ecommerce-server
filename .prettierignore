@@ -1,0 +1,21 @@
+# Ignore build output
+dist
+build
+
+# Ignore dependencies
+node_modules
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Logs
+*.log
+
+# Environment
+.env
+.env.* 
+
+# Optional: ignore JSON config or lock files (if managed separately)
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
