@@ -1,0 +1,44 @@
+{
+  "name": "ecommerce-server",
+  "version": "1.0.0",
+  "description": "An e-commerce application server",
+  "main": "server.ts",
+  "scripts": {
+    "server": "tsx --env-file=.env --watch src/server.ts",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "prepare": "husky"
+  },
+  "keywords": [
+    "server",
+    "node",
+    "express",
+    "typescript"
+  ],
+  "author": "Jenish Adhikari",
+  "license": "ISC",
+  "packageManager": "pnpm@10.8.0",
+  "devDependencies": {
+    "@eslint/js": "^9.26.0",
+    "@types/express": "^5.0.1",
+    "@types/node": "^22.15.17",
+    "eslint": "^9.26.0",
+    "eslint-config-prettier": "^10.1.5",
+    "globals": "^16.1.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.0.0",
+    "prettier": "^3.5.3",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.32.0"
+  },
+  "dependencies": {
+    "express": "^5.1.0"
+  },
+  "lint-staged": {
+    "*.{ts,js,mjs}": [
+      "eslint --fix",
+      "prettier --write"
+    ]
+  }
+}
