@@ -1,7 +1,7 @@
 import express, { type Express } from 'express';
 
 /* IMPORT ROUTES */
-import healthRoutes from './healthcheck';
+import healthRoutes from './features/healthcheck';
 
 const app: Express = express();
 
