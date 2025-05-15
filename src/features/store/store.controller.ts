@@ -10,134 +10,149 @@ import {
 import {
   BadRequestError,
   InternalError,
+  NotFoundError,
   UnauthorizedError,
 } from '../../lib/api-error';
+import { asyncHandler } from '../../lib/async-handler';
 
-// POST /api/v1/stores - create new store
-export async function createStore(req: Request, res: Response) {
-  try {
-    const user = req.user;
-    const { name } = req.body;
+// POST /api/v1/stores - Create new store
+export const createStore = asyncHandler(async (req: Request, res: Response) => {
+  const user = req.user;
+  const { name } = req.body;
 
-    if (!user || !user.id) {
-      throw new UnauthorizedError('You are not logged in!');
-    }
+  if (!user?.id) {
+    throw new UnauthorizedError(
+      'To perform this action, authentication is required!'
+    );
+  }
 
-    if (!name) {
-      throw new BadRequestError('Store name is required!');
-    }
+  if (!name) {
+    throw new BadRequestError('Store name is required!');
+  }
 
-    const store = await createStoreQuery(user.id, name);
-
-    res.status(201).json({
-      message: 'Store created successfully!',
-      store,
-    });
-  } catch (error) {
-    console.log(error);
+  const store = await createStoreQuery(user.id, name);
+  if (!store) {
     throw new InternalError('Failed to create store!');
   }
-}
 
-// GET /api/v1/stores - get all stores
-export async function getStores(req: Request, res: Response) {
-  try {
-    const user = req.user;
-    if (!user || !user.id) {
-      throw new UnauthorizedError('You are not logged in!');
-    }
+  res.status(201).json({
+    success: true,
+    data: {
+      message: 'Store created successfully!',
+      store: store,
+    },
+  });
+});
 
-    const stores = await getStoresQuery(user.id);
-
-    res.status(200).json({
-      message: 'Stores fetched successfully!',
-      stores,
-    });
-  } catch (error) {
-    console.log(error);
-    throw new InternalError('Failed to get stores data!');
+// GET /api/v1/stores - Get all stores
+export const getStores = asyncHandler(async (req: Request, res: Response) => {
+  const user = req.user;
+  if (!user?.id) {
+    throw new UnauthorizedError(
+      'To perform this action, authentication is required!'
+    );
   }
-}
 
-// GET /api/v1/store/:id - get store
-export async function getStore(req: Request, res: Response) {
-  try {
-    const user = req.user;
-    const storeId = req.params.id;
-
-    if (!user || !user.id) {
-      throw new UnauthorizedError('You are not logged in!');
-    }
-
-    if (!storeId) {
-      throw new BadRequestError('Store id is required!');
-    }
-
-    const store = await getStoreQuery(user.id, storeId);
-
-    res.status(200).json({
-      message: 'Stores fetched successfully!',
-      store,
-    });
-  } catch (error) {
-    console.log(error);
-    throw new InternalError('Failed to get store data!');
+  const stores = await getStoresQuery(user.id);
+  if (!stores) {
+    throw new NotFoundError('Failed to fetch stores!');
   }
-}
 
-// PATCH /api/v1/stores/:id - update store
-export async function updateStore(req: Request, res: Response) {
-  try {
-    const user = req.user;
-    const { name } = req.body;
-    const storeId = req.params.id;
+  res.status(200).json({
+    success: true,
+    data: {
+      message: 'Stores fetched successfully!',
+      stores: stores,
+    },
+  });
+});
 
-    if (!user || !user.id) {
-      throw new UnauthorizedError('You are not logged in!');
-    }
+// GET /api/v1/store/:id - Get store
+export const getStore = asyncHandler(async (req: Request, res: Response) => {
+  const user = req.user;
+  const storeId = req.params.id;
 
-    if (!name) {
-      throw new BadRequestError('Store name is required!');
-    }
+  if (!user?.id) {
+    throw new UnauthorizedError('You are not logged in!');
+  }
 
-    if (!storeId) {
-      throw new BadRequestError('Store id is required!');
-    }
+  if (!storeId) {
+    throw new BadRequestError('Store id is required!');
+  }
 
-    const store = await updateStoreQuery(user.id, storeId, name);
+  const store = await getStoreQuery(user.id, storeId);
+  if (!store) {
+    throw new NotFoundError('Store not found!');
+  }
 
-    res.status(201).json({
+  res.status(200).json({
+    success: true,
+    data: {
+      message: 'Store fetched successfully!',
+      store: store,
+    },
+  });
+});
+
+// PATCH /api/v1/stores/:id - Update store
+export const updateStore = asyncHandler(async (req: Request, res: Response) => {
+  const user = req.user;
+  const { name } = req.body;
+  const storeId = req.params.id;
+
+  if (!user?.id) {
+    throw new UnauthorizedError(
+      'To perform this action, authentication is required!'
+    );
+  }
+
+  if (!name) {
+    throw new BadRequestError('Store name is required!');
+  }
+
+  if (!storeId) {
+    throw new BadRequestError('Store id is required!');
+  }
+
+  const store = await updateStoreQuery(user.id, storeId, name);
+  if (!store) {
+    throw new NotFoundError('Store not found!');
+  }
+
+  res.status(200).json({
+    success: true,
+    data: {
       message: 'Store updated successfully!',
-      store,
-    });
-  } catch (error) {
-    console.log(error);
-    throw new InternalError('Failed to update store!');
+      store: store,
+    },
+  });
+});
+
+// DELETE /api/v1/stores/:id - Delete store
+export const deleteStore = asyncHandler(async (req: Request, res: Response) => {
+  const user = req.user;
+  const storeId = req.params.id;
+
+  if (!user?.id) {
+    throw new UnauthorizedError(
+      'To perform this action, authentication is required!'
+    );
   }
-}
 
-// DELETE /api/v1/stores/:id - delete store
-export async function deleteStore(req: Request, res: Response) {
-  try {
-    const user = req.user;
-    const storeId = req.params.id;
+  if (!storeId) {
+    throw new BadRequestError('Store id is required!');
+  }
 
-    if (!user || !user.id) {
-      throw new UnauthorizedError('You are not logged in!');
-    }
+  const store = await deleteStoreQuery(user.id, storeId);
+  if (!store) {
+    throw new NotFoundError('Store not found!');
+  }
 
-    if (!storeId) {
-      throw new BadRequestError('Store id is required!');
-    }
-
-    const store = await deleteStoreQuery(user.id, storeId);
-
-    res.status(201).json({
+  res.status(200).json({
+    success: true,
+    data: {
       message: 'Store deleted successfully!',
-      store,
-    });
-  } catch (error) {
-    console.log(error);
-    throw new InternalError('Failed to delete store!');
-  }
-}
+      store: store,
+    },
+  });
+});

@@ -14,6 +14,10 @@ export class ApiError extends Error {
     super(message);
     this.type = type;
     this.statusCode = statusCode;
+
+    // Required for instanceof checks to work correctly
+    Object.setPrototypeOf(this, new.target.prototype);
+    Error.captureStackTrace(this);
   }
 }
 

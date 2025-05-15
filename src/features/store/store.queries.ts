@@ -31,22 +31,30 @@ export async function updateStoreQuery(
   storeId: string,
   name: string
 ) {
-  return await db.store.update({
-    where: {
-      id: storeId,
-      userId,
-    },
-    data: {
-      name,
-    },
-  });
+  try {
+    return await db.store.update({
+      where: {
+        id: storeId,
+        userId: userId,
+      },
+      data: {
+        name,
+      },
+    });
+  } catch {
+    return null;
+  }
 }
 
 export async function deleteStoreQuery(userId: string, storeId: string) {
-  return await db.store.delete({
-    where: {
-      id: storeId,
-      userId,
-    },
-  });
+  try {
+    return await db.store.delete({
+      where: {
+        id: storeId,
+        userId,
+      },
+    });
+  } catch {
+    return null;
+  }
 }

@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+
 import { ApiError } from '../lib/api-error';
 
 export async function errorMiddleware(
@@ -8,8 +9,14 @@ export async function errorMiddleware(
   next: NextFunction
 ) {
   if (err instanceof ApiError) {
-    res.status(err.statusCode).json({ message: err.message });
-  } else {
-    next();
+    console.log(err);
+    res.status(err.statusCode || 500).json({
+      success: false,
+      error: {
+        type: err.type || 'InternalError',
+        message: err.message || 'Internal server error',
+      },
+    });
   }
+  next();
 }
