@@ -1,4 +1,5 @@
 import express, { type Express } from 'express';
+import cookieParser from 'cookie-parser';
 
 import { errorMiddleware } from './middlewares/error.middleware';
 /* IMPORT ROUTES */
@@ -10,6 +11,7 @@ const app: Express = express();
 /* CONFIGURATIONS */
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 /* ROUTES */
 app.use('/api/v1/healthcheck', healthRoutes);
