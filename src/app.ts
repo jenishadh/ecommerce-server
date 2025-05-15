@@ -5,6 +5,7 @@ import { errorMiddleware } from './middlewares/error.middleware';
 /* IMPORT ROUTES */
 import healthRoutes from './features/healthcheck';
 import authRoutes from './features/auth';
+import storeRoutes from './features/store';
 
 const app: Express = express();
 
@@ -16,6 +17,7 @@ app.use(cookieParser());
 /* ROUTES */
 app.use('/api/v1/healthcheck', healthRoutes);
 app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/stores', storeRoutes);
 
 // Error middleware - Catch custom api errors
 app.use(errorMiddleware);
