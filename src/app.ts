@@ -9,6 +9,7 @@ import storeRoutes from './features/store';
 import { billboardRoutes, billboardsRoutes } from './features/billboard';
 import { categoryRoutes, categoriesRoutes } from './features/category';
 import { colorRoutes, colorsRoutes } from './features/color';
+import { sizeRoutes, sizesRoutes } from './features/size';
 
 const app: Express = express();
 
@@ -32,6 +33,9 @@ app.use('/api/v1/categories', categoryRoutes);
 
 app.use('/api/v1/stores', colorsRoutes);
 app.use('/api/v1/colors', colorRoutes);
+
+app.use('/api/v1/stores', sizesRoutes);
+app.use('/api/v1/sizes', sizeRoutes);
 
 // Error middleware - Catch custom api errors
 app.use(errorMiddleware);

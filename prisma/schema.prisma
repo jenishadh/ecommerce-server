@@ -22,9 +22,10 @@ model User {
   role         Role    @default(USER)
   refreshToken String?
 
+  stores    Store[]
+  
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  stores    Store[]
 }
 
 model Store {
@@ -35,10 +36,11 @@ model Store {
 
   billboards Billboard[]
   categories Category[]
+  colors     Color[]
+  sizes      Size[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  Color     Color[]
 }
 
 model Billboard {
@@ -65,6 +67,18 @@ model Category {
 }
 
 model Color {
+  id    String @id @default(cuid())
+  name  String
+  value String
+
+  storeId String
+  stores  Store  @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Size {
   id    String @id @default(cuid())
   name  String
   value String
