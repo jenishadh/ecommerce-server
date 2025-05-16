@@ -7,6 +7,7 @@ import healthRoutes from './features/healthcheck';
 import authRoutes from './features/auth';
 import storeRoutes from './features/store';
 import { billboardRoutes, billboardsRoutes } from './features/billboard';
+import { categoryRoutes, categoriesRoutes } from './features/category';
 
 const app: Express = express();
 
@@ -21,6 +22,8 @@ app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/stores', storeRoutes);
 app.use('/api/v1/stores', billboardsRoutes);
 app.use('/api/v1/billboards', billboardRoutes);
+app.use('/api/v1/stores', categoriesRoutes);
+app.use('/api/v1/categories', categoryRoutes);
 
 // Error middleware - Catch custom api errors
 app.use(errorMiddleware);
