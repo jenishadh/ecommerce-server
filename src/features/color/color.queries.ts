@@ -18,7 +18,7 @@ export async function getColorsQuery(userId: string, storeId: string) {
   return await db.color.findMany({
     where: {
       storeId,
-      stores: {
+      store: {
         userId,
       },
     },
@@ -29,7 +29,7 @@ export async function getColorQuery(userId: string, colorId: string) {
   return await db.color.findUnique({
     where: {
       id: colorId,
-      stores: {
+      store: {
         userId,
       },
     },
@@ -46,7 +46,7 @@ export async function updateColorQuery(
     return await db.color.update({
       where: {
         id: colorId,
-        stores: {
+        store: {
           userId,
         },
       },
@@ -65,7 +65,7 @@ export async function deleteColorQuery(userId: string, colorId: string) {
     return await db.color.delete({
       where: {
         id: colorId,
-        stores: {
+        store: {
           userId,
         },
       },

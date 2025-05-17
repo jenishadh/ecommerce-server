@@ -13,7 +13,7 @@ export async function getCategoriesQuery(userId: string, storeId: string) {
   return await db.category.findMany({
     where: {
       storeId,
-      stores: {
+      store: {
         userId,
       },
     },
@@ -24,7 +24,7 @@ export async function getCategoryQuery(userId: string, categoryId: string) {
   return await db.category.findUnique({
     where: {
       id: categoryId,
-      stores: {
+      store: {
         userId,
       },
     },
@@ -40,7 +40,7 @@ export async function updateCategoryQuery(
     return await db.category.update({
       where: {
         id: categoryId,
-        stores: {
+        store: {
           userId,
         },
       },
@@ -58,7 +58,7 @@ export async function deleteCategoryQuery(userId: string, categoryId: string) {
     return await db.category.delete({
       where: {
         id: categoryId,
-        stores: {
+        store: {
           userId,
         },
       },

@@ -18,7 +18,7 @@ export async function getBillboardsQuery(userId: string, storeId: string) {
   return await db.billboard.findMany({
     where: {
       storeId,
-      stores: {
+      store: {
         userId,
       },
     },
@@ -29,7 +29,7 @@ export async function getBillboardQuery(userId: string, billboardId: string) {
   return await db.billboard.findUnique({
     where: {
       id: billboardId,
-      stores: {
+      store: {
         userId,
       },
     },
@@ -46,7 +46,7 @@ export async function updateBillboardQuery(
     return await db.billboard.update({
       where: {
         id: billboardId,
-        stores: {
+        store: {
           userId,
         },
       },
@@ -68,7 +68,7 @@ export async function deleteBillboardQuery(
     return await db.billboard.delete({
       where: {
         id: billboardId,
-        stores: {
+        store: {
           userId,
         },
       },
