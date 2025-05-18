@@ -11,44 +11,41 @@ import { getStoreQuery } from '../store/store.queries';
 import { asyncHandler } from '../../lib/async-handler';
 import {
   BadRequestError,
-  InternalError,
   NotFoundError,
   UnauthorizedError,
 } from '../../lib/api-error';
+import { colorIdSchema, nameSchema, storeIdSchema } from './color.schema';
 
-// POST /api/v1/stores/:id/colors - Create new color
+// POST /api/v1/stores/:storeId/colors - Create new color
 export const createColor = asyncHandler(async (req: Request, res: Response) => {
-  const user = req.user;
-  const { name, value } = req.body;
-  const storeId = req.params.id;
-
-  if (!user?.id) {
+  const userId = req.user?.id;
+  if (!userId) {
     throw new UnauthorizedError(
-      'To perform this action, authentication is required!'
+      'Authentication failed! Please log in to continue.'
     );
   }
 
-  if (!name) {
-    throw new BadRequestError('Color name is required!');
+  const storeId = storeIdSchema.safeParse(req.params.storeId);
+  if (!storeId.success) {
+    throw new BadRequestError(storeId.error?.errors[0]?.message);
   }
 
-  if (!value) {
-    throw new BadRequestError('Color value is required!');
+  const name = nameSchema.safeParse(req.body.name);
+  if (!name.success) {
+    throw new BadRequestError(name.error?.errors[0]?.message);
   }
 
-  if (!storeId) {
-    throw new BadRequestError('Store id is required!');
+  const value = nameSchema.safeParse(req.body.value);
+  if (!value.success) {
+    throw new BadRequestError(value.error?.errors[0]?.message);
   }
 
-  const storeIdByUser = await getStoreQuery(user.id, storeId);
-  if (!storeIdByUser) {
-    throw new UnauthorizedError('Access denied!');
+  const store = await getStoreQuery(userId, storeId.data);
+  if (!store) {
+    throw new NotFoundError('Store not found!');
   }
 
-  const color = await createColorQuery(name, value, storeIdByUser.id);
-  if (!color) {
-    throw new InternalError('Failed to create color!');
-  }
+  const color = await createColorQuery(name.data, value.data, store.id);
 
   res.status(201).json({
     success: true,
@@ -59,27 +56,26 @@ export const createColor = asyncHandler(async (req: Request, res: Response) => {
   });
 });
 
-// GET /api/v1/stores/:id/colors - Get all colors
+// GET /api/v1/stores/:storeId/colors - Get all colors
 export const getColors = asyncHandler(async (req: Request, res: Response) => {
-  const user = req.user;
-  const storeId = req.params.id;
-
-  if (!user?.id) {
+  const userId = req.user?.id;
+  if (!userId) {
     throw new UnauthorizedError(
-      'To perform this action, authentication is required!'
+      'Authentication failed! Please log in to continue.'
     );
   }
 
-  if (!storeId) {
-    throw new BadRequestError('Store id is required!');
+  const storeId = storeIdSchema.safeParse(req.params.storeId);
+  if (!storeId.success) {
+    throw new BadRequestError(storeId.error?.errors[0]?.message);
   }
 
-  const storeIdByUser = await getStoreQuery(user.id, storeId);
-  if (!storeIdByUser) {
-    throw new UnauthorizedError('Access denied!');
+  const store = await getStoreQuery(userId, storeId.data);
+  if (!store) {
+    throw new NotFoundError('Store not found!');
   }
 
-  const colors = await getColorsQuery(user.id, storeId);
+  const colors = await getColorsQuery(userId, store.id);
 
   res.status(200).json({
     success: true,
@@ -90,26 +86,26 @@ export const getColors = asyncHandler(async (req: Request, res: Response) => {
   });
 });
 
-// GET /api/v1/colors/:id - Get color
+// GET /api/v1/colors/:colorId - Get color
 export const getColor = asyncHandler(async (req: Request, res: Response) => {
-  const user = req.user;
-  const colorId = req.params.id;
-
-  if (!user?.id) {
+  const userId = req.user?.id;
+  if (!userId) {
     throw new UnauthorizedError(
-      'To perform this action, authentication is required!'
+      'Authentication failed! Please log in to continue.'
     );
   }
-  if (!colorId) {
-    throw new BadRequestError('Color id is required!');
+
+  const colorId = colorIdSchema.safeParse(req.params.colorId);
+  if (!colorId.success) {
+    throw new BadRequestError(colorId.error?.errors[0]?.message);
   }
 
-  const color = await getColorQuery(user.id, colorId);
+  const color = await getColorQuery(userId, colorId.data);
   if (!color) {
     throw new NotFoundError('Color not found!');
   }
 
-  res.status(201).json({
+  res.status(200).json({
     success: true,
     data: {
       message: 'Color fetched successfully!',
@@ -118,36 +114,43 @@ export const getColor = asyncHandler(async (req: Request, res: Response) => {
   });
 });
 
-// PATCH /api/v1/colors/:id - Update color
+// PATCH /api/v1/colors/:colorId - Update color
 export const updateColor = asyncHandler(async (req: Request, res: Response) => {
-  const user = req.user;
-  const colorId = req.params.id;
-  const { name, value } = req.body;
-
-  if (!user?.id) {
+  const userId = req.user?.id;
+  if (!userId) {
     throw new UnauthorizedError(
-      'To perform this action, authentication is required!'
+      'Authentication failed! Please log in to continue.'
     );
   }
 
-  if (!colorId) {
-    throw new BadRequestError('Color id is required!');
+  const colorId = colorIdSchema.safeParse(req.params.colorId);
+  if (!colorId.success) {
+    throw new BadRequestError(colorId.error?.errors[0]?.message);
   }
 
-  if (!name) {
-    throw new BadRequestError('Color name is required!');
+  const name = nameSchema.safeParse(req.body.name);
+  if (!name.success) {
+    throw new BadRequestError(name.error?.errors[0]?.message);
   }
 
-  if (!value) {
-    throw new BadRequestError('Color value is required!');
+  const value = nameSchema.safeParse(req.body.value);
+  if (!value.success) {
+    throw new BadRequestError(value.error?.errors[0]?.message);
   }
 
-  const color = await updateColorQuery(user.id, colorId, name, value);
-  if (!color) {
+  const existingColor = await getColorQuery(userId, colorId.data);
+  if (!existingColor) {
     throw new NotFoundError('Color not found!');
   }
 
-  res.status(201).json({
+  const color = await updateColorQuery(
+    userId,
+    existingColor.id,
+    name.data,
+    value.data
+  );
+
+  res.status(200).json({
     success: true,
     data: {
       message: 'Color updated successfully!',
@@ -156,26 +159,28 @@ export const updateColor = asyncHandler(async (req: Request, res: Response) => {
   });
 });
 
-// DELETE /api/v1/colors/:id - Delete color
+// DELETE /api/v1/colors/:colorId - Delete color
 export const deleteColor = asyncHandler(async (req: Request, res: Response) => {
-  const user = req.user;
-  const colorId = req.params.id;
-
-  if (!user?.id) {
+  const userId = req.user?.id;
+  if (!userId) {
     throw new UnauthorizedError(
-      'To perform this action, authentication is required!'
+      'Authentication failed! Please log in to continue.'
     );
   }
-  if (!colorId) {
-    throw new BadRequestError('Color id is required!');
+
+  const colorId = colorIdSchema.safeParse(req.params.colorId);
+  if (!colorId.success) {
+    throw new BadRequestError(colorId.error?.errors[0]?.message);
   }
 
-  const color = await deleteColorQuery(user.id, colorId);
-  if (!color) {
+  const existingColor = await getColorQuery(userId, colorId.data);
+  if (!existingColor) {
     throw new NotFoundError('Color not found!');
   }
 
-  res.status(201).json({
+  const color = await deleteColorQuery(userId, existingColor.id);
+
+  res.status(200).json({
     success: true,
     data: {
       message: 'Color deleted successfully!',

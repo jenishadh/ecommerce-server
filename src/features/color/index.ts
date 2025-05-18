@@ -11,13 +11,13 @@ import { authMiddleware } from '../../middlewares/auth.middleware';
 
 const colorsRoutes: Router = Router();
 
-colorsRoutes.post('/:id/colors', authMiddleware, createColor);
-colorsRoutes.get('/:id/colors', authMiddleware, getColors);
+colorsRoutes.post('/:storeId/colors', authMiddleware, createColor);
+colorsRoutes.get('/:storeId/colors', authMiddleware, getColors);
 
 const colorRoutes: Router = Router();
 
-colorRoutes.get('/:id', authMiddleware, getColor);
-colorRoutes.patch('/:id', authMiddleware, updateColor);
-colorRoutes.delete('/:id', authMiddleware, deleteColor);
+colorRoutes.get('/:colorId', authMiddleware, getColor);
+colorRoutes.patch('/:colorId', authMiddleware, updateColor);
+colorRoutes.delete('/:colorId', authMiddleware, deleteColor);
 
 export { colorsRoutes, colorRoutes };

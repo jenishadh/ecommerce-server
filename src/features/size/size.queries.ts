@@ -42,35 +42,27 @@ export async function updateSizeQuery(
   name: string,
   value: string
 ) {
-  try {
-    return await db.size.update({
-      where: {
-        id: sizeId,
-        store: {
-          userId,
-        },
+  return await db.size.update({
+    where: {
+      id: sizeId,
+      store: {
+        userId,
       },
-      data: {
-        name,
-        value,
-      },
-    });
-  } catch {
-    return null;
-  }
+    },
+    data: {
+      name,
+      value,
+    },
+  });
 }
 
 export async function deleteSizeQuery(userId: string, sizeId: string) {
-  try {
-    return await db.size.delete({
-      where: {
-        id: sizeId,
-        store: {
-          userId,
-        },
+  return await db.size.delete({
+    where: {
+      id: sizeId,
+      store: {
+        userId,
       },
-    });
-  } catch {
-    return null;
-  }
+    },
+  });
 }

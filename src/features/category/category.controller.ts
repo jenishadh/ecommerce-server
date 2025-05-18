@@ -11,41 +11,37 @@ import { getStoreQuery } from '../store/store.queries';
 import { asyncHandler } from '../../lib/async-handler';
 import {
   BadRequestError,
-  InternalError,
   NotFoundError,
   UnauthorizedError,
 } from '../../lib/api-error';
+import { categoryIdSchema, nameSchema, storeIdSchema } from './category.schema';
 
-// POST /api/v1/stores/:id/categories - Create new category
+// POST /api/v1/stores/:storeId/categories - Create new category
 export const createCategory = asyncHandler(
   async (req: Request, res: Response) => {
-    const user = req.user;
-    const { name } = req.body;
-    const storeId = req.params.id;
-
-    if (!user?.id) {
+    const userId = req.user?.id;
+    if (!userId) {
       throw new UnauthorizedError(
-        'To perform this action, authentication is required!'
+        'Authentication failed! Please log in to continue.'
       );
     }
 
-    if (!name) {
-      throw new BadRequestError('Category name is required!');
+    const storeId = storeIdSchema.safeParse(req.params.storeId);
+    if (!storeId.success) {
+      throw new BadRequestError(storeId.error?.errors[0]?.message);
     }
 
-    if (!storeId) {
-      throw new BadRequestError('Store id is required!');
+    const name = nameSchema.safeParse(req.body.name);
+    if (!name.success) {
+      throw new BadRequestError(name.error?.errors[0]?.message);
     }
 
-    const storeIdByUser = await getStoreQuery(user.id, storeId);
-    if (!storeIdByUser) {
-      throw new UnauthorizedError('Access denied!');
+    const store = await getStoreQuery(userId, storeId.data);
+    if (!store) {
+      throw new NotFoundError('Store not found!');
     }
 
-    const category = await createCategoryQuery(name, storeIdByUser.id);
-    if (!category) {
-      throw new InternalError('Failed to create category!');
-    }
+    const category = await createCategoryQuery(name.data, store.id);
 
     res.status(201).json({
       success: true,
@@ -57,28 +53,27 @@ export const createCategory = asyncHandler(
   }
 );
 
-// GET /api/v1/stores/:id/categories - Get all categories
+// GET /api/v1/stores/:storeId/categories - Get all categories
 export const getCategories = asyncHandler(
   async (req: Request, res: Response) => {
-    const user = req.user;
-    const storeId = req.params.id;
-
-    if (!user?.id) {
+    const userId = req.user?.id;
+    if (!userId) {
       throw new UnauthorizedError(
-        'To perform this action, authentication is required!'
+        'Authentication failed! Please log in to continue.'
       );
     }
 
-    if (!storeId) {
-      throw new BadRequestError('Store id is required!');
+    const storeId = storeIdSchema.safeParse(req.params.storeId);
+    if (!storeId.success) {
+      throw new BadRequestError(storeId.error?.errors[0]?.message);
     }
 
-    const storeIdByUser = await getStoreQuery(user.id, storeId);
-    if (!storeIdByUser) {
-      throw new UnauthorizedError('Access denied!');
+    const store = await getStoreQuery(userId, storeId.data);
+    if (!store) {
+      throw new NotFoundError('Store not found!');
     }
 
-    const categories = await getCategoriesQuery(user.id, storeId);
+    const categories = await getCategoriesQuery(userId, store.id);
 
     res.status(200).json({
       success: true,
@@ -90,26 +85,26 @@ export const getCategories = asyncHandler(
   }
 );
 
-// GET /api/v1/categories/:id - Get category
+// GET /api/v1/categories/:categoryId - Get category
 export const getCategory = asyncHandler(async (req: Request, res: Response) => {
-  const user = req.user;
-  const categoryId = req.params.id;
-
-  if (!user?.id) {
+  const userId = req.user?.id;
+  if (!userId) {
     throw new UnauthorizedError(
-      'To perform this action, authentication is required!'
+      'Authentication failed! Please log in to continue.'
     );
   }
-  if (!categoryId) {
-    throw new BadRequestError('Category id is required!');
+
+  const categoryId = categoryIdSchema.safeParse(req.params.categoryId);
+  if (!categoryId.success) {
+    throw new BadRequestError(categoryId.error?.errors[0]?.message);
   }
 
-  const category = await getCategoryQuery(user.id, categoryId);
+  const category = await getCategoryQuery(userId, categoryId.data);
   if (!category) {
     throw new NotFoundError('Category not found!');
   }
 
-  res.status(201).json({
+  res.status(200).json({
     success: true,
     data: {
       message: 'Category fetched successfully!',
@@ -118,33 +113,38 @@ export const getCategory = asyncHandler(async (req: Request, res: Response) => {
   });
 });
 
-// PATCH /api/v1/categories/:id - Update category
+// PATCH /api/v1/categories/:categoryId - Update category
 export const updateCategory = asyncHandler(
   async (req: Request, res: Response) => {
-    const user = req.user;
-    const categoryId = req.params.id;
-    const { name } = req.body;
-
-    if (!user?.id) {
+    const userId = req.user?.id;
+    if (!userId) {
       throw new UnauthorizedError(
-        'To perform this action, authentication is required!'
+        'Authentication failed! Please log in to continue.'
       );
     }
 
-    if (!categoryId) {
-      throw new BadRequestError('Category id is required!');
+    const categoryId = categoryIdSchema.safeParse(req.params.categoryId);
+    if (!categoryId.success) {
+      throw new BadRequestError(categoryId.error?.errors[0]?.message);
     }
 
-    if (!name) {
-      throw new BadRequestError('Category name is required!');
+    const name = nameSchema.safeParse(req.body.name);
+    if (!name.success) {
+      throw new BadRequestError(name.error?.errors[0]?.message);
     }
 
-    const category = await updateCategoryQuery(user.id, categoryId, name);
-    if (!category) {
+    const existingCategory = await getCategoryQuery(userId, categoryId.data);
+    if (!existingCategory) {
       throw new NotFoundError('Category not found!');
     }
 
-    res.status(201).json({
+    const category = await updateCategoryQuery(
+      userId,
+      existingCategory.id,
+      name.data
+    );
+
+    res.status(200).json({
       success: true,
       data: {
         message: 'Category updated successfully!',
@@ -154,27 +154,29 @@ export const updateCategory = asyncHandler(
   }
 );
 
-// DELETE /api/v1/categories/:id - Delete category
+// DELETE /api/v1/categories/:categoryId - Delete category
 export const deleteCategory = asyncHandler(
   async (req: Request, res: Response) => {
-    const user = req.user;
-    const categoryId = req.params.id;
-
-    if (!user?.id) {
+    const userId = req.user?.id;
+    if (!userId) {
       throw new UnauthorizedError(
-        'To perform this action, authentication is required!'
+        'Authentication failed! Please log in to continue.'
       );
     }
-    if (!categoryId) {
-      throw new BadRequestError('Category id is required!');
+
+    const categoryId = categoryIdSchema.safeParse(req.params.categoryId);
+    if (!categoryId.success) {
+      throw new BadRequestError(categoryId.error?.errors[0]?.message);
     }
 
-    const category = await deleteCategoryQuery(user.id, categoryId);
-    if (!category) {
+    const existingCategory = await getCategoryQuery(userId, categoryId.data);
+    if (!existingCategory) {
       throw new NotFoundError('Category not found!');
     }
 
-    res.status(201).json({
+    const category = await deleteCategoryQuery(userId, existingCategory.id);
+
+    res.status(200).json({
       success: true,
       data: {
         message: 'Category deleted successfully!',

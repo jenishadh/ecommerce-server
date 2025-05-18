@@ -36,34 +36,26 @@ export async function updateCategoryQuery(
   categoryId: string,
   name: string
 ) {
-  try {
-    return await db.category.update({
-      where: {
-        id: categoryId,
-        store: {
-          userId,
-        },
+  return await db.category.update({
+    where: {
+      id: categoryId,
+      store: {
+        userId,
       },
-      data: {
-        name,
-      },
-    });
-  } catch {
-    return null;
-  }
+    },
+    data: {
+      name,
+    },
+  });
 }
 
 export async function deleteCategoryQuery(userId: string, categoryId: string) {
-  try {
-    return await db.category.delete({
-      where: {
-        id: categoryId,
-        store: {
-          userId,
-        },
+  return await db.category.delete({
+    where: {
+      id: categoryId,
+      store: {
+        userId,
       },
-    });
-  } catch {
-    return null;
-  }
+    },
+  });
 }

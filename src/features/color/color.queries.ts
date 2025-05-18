@@ -42,35 +42,27 @@ export async function updateColorQuery(
   name: string,
   value: string
 ) {
-  try {
-    return await db.color.update({
-      where: {
-        id: colorId,
-        store: {
-          userId,
-        },
+  return await db.color.update({
+    where: {
+      id: colorId,
+      store: {
+        userId,
       },
-      data: {
-        name,
-        value,
-      },
-    });
-  } catch {
-    return null;
-  }
+    },
+    data: {
+      name,
+      value,
+    },
+  });
 }
 
 export async function deleteColorQuery(userId: string, colorId: string) {
-  try {
-    return await db.color.delete({
-      where: {
-        id: colorId,
-        store: {
-          userId,
-        },
+  return await db.color.delete({
+    where: {
+      id: colorId,
+      store: {
+        userId,
       },
-    });
-  } catch {
-    return null;
-  }
+    },
+  });
 }

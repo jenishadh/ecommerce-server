@@ -13,8 +13,8 @@ const router: Router = Router();
 
 router.post('/', authMiddleware, createStore);
 router.get('/', authMiddleware, getStores);
-router.get('/:id', authMiddleware, getStore);
-router.patch('/:id', authMiddleware, updateStore);
-router.delete('/:id', authMiddleware, deleteStore);
+router.get('/:storeId', authMiddleware, getStore);
+router.patch('/:storeId', authMiddleware, updateStore);
+router.delete('/:storeId', authMiddleware, deleteStore);
 
 export default router;

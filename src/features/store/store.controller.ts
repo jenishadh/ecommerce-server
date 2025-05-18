@@ -9,31 +9,27 @@ import {
 } from './store.queries';
 import {
   BadRequestError,
-  InternalError,
   NotFoundError,
   UnauthorizedError,
 } from '../../lib/api-error';
 import { asyncHandler } from '../../lib/async-handler';
+import { nameSchema, storeIdSchema } from './store.schema';
 
 // POST /api/v1/stores - Create new store
 export const createStore = asyncHandler(async (req: Request, res: Response) => {
-  const user = req.user;
-  const { name } = req.body;
-
-  if (!user?.id) {
+  const userId = req.user?.id;
+  if (!userId) {
     throw new UnauthorizedError(
-      'To perform this action, authentication is required!'
+      'Authentication failed! Please log in to continue.'
     );
   }
 
-  if (!name) {
-    throw new BadRequestError('Store name is required!');
+  const name = nameSchema.safeParse(req.body.name);
+  if (!name.success) {
+    throw new BadRequestError(name.error?.errors[0]?.message);
   }
 
-  const store = await createStoreQuery(user.id, name);
-  if (!store) {
-    throw new InternalError('Failed to create store!');
-  }
+  const store = await createStoreQuery(userId, name.data);
 
   res.status(201).json({
     success: true,
@@ -46,17 +42,14 @@ export const createStore = asyncHandler(async (req: Request, res: Response) => {
 
 // GET /api/v1/stores - Get all stores
 export const getStores = asyncHandler(async (req: Request, res: Response) => {
-  const user = req.user;
-  if (!user?.id) {
+  const userId = req.user?.id;
+  if (!userId) {
     throw new UnauthorizedError(
-      'To perform this action, authentication is required!'
+      'Authentication failed! Please log in to continue.'
     );
   }
 
-  const stores = await getStoresQuery(user.id);
-  if (!stores) {
-    throw new NotFoundError('Failed to fetch stores!');
-  }
+  const stores = await getStoresQuery(userId);
 
   res.status(200).json({
     success: true,
@@ -67,20 +60,21 @@ export const getStores = asyncHandler(async (req: Request, res: Response) => {
   });
 });
 
-// GET /api/v1/store/:id - Get store
+// GET /api/v1/store/:storeId - Get store
 export const getStore = asyncHandler(async (req: Request, res: Response) => {
-  const user = req.user;
-  const storeId = req.params.id;
-
-  if (!user?.id) {
-    throw new UnauthorizedError('You are not logged in!');
+  const userId = req.user?.id;
+  if (!userId) {
+    throw new UnauthorizedError(
+      'Authentication failed! Please log in to continue.'
+    );
   }
 
-  if (!storeId) {
-    throw new BadRequestError('Store id is required!');
+  const storeId = storeIdSchema.safeParse(req.params.storeId);
+  if (!storeId.success) {
+    throw new BadRequestError(storeId.error?.errors[0]?.message);
   }
 
-  const store = await getStoreQuery(user.id, storeId);
+  const store = await getStoreQuery(userId, storeId.data);
   if (!store) {
     throw new NotFoundError('Store not found!');
   }
@@ -94,30 +88,31 @@ export const getStore = asyncHandler(async (req: Request, res: Response) => {
   });
 });
 
-// PATCH /api/v1/stores/:id - Update store
+// PATCH /api/v1/stores/:storeId- Update store
 export const updateStore = asyncHandler(async (req: Request, res: Response) => {
-  const user = req.user;
-  const { name } = req.body;
-  const storeId = req.params.id;
-
-  if (!user?.id) {
+  const userId = req.user?.id;
+  if (!userId) {
     throw new UnauthorizedError(
-      'To perform this action, authentication is required!'
+      'Authentication failed! Please log in to continue.'
     );
   }
 
-  if (!name) {
-    throw new BadRequestError('Store name is required!');
+  const storeId = storeIdSchema.safeParse(req.params.storeId);
+  if (!storeId.success) {
+    throw new BadRequestError(storeId.error?.errors[0]?.message);
   }
 
-  if (!storeId) {
-    throw new BadRequestError('Store id is required!');
+  const name = nameSchema.safeParse(req.body.name);
+  if (!name.success) {
+    throw new BadRequestError(name.error?.errors[0]?.message);
   }
 
-  const store = await updateStoreQuery(user.id, storeId, name);
-  if (!store) {
+  const existingStore = await getStoreQuery(userId, storeId.data);
+  if (!existingStore) {
     throw new NotFoundError('Store not found!');
   }
+
+  const store = await updateStoreQuery(userId, existingStore.id, name.data);
 
   res.status(200).json({
     success: true,
@@ -128,25 +123,26 @@ export const updateStore = asyncHandler(async (req: Request, res: Response) => {
   });
 });
 
-// DELETE /api/v1/stores/:id - Delete store
+// DELETE /api/v1/stores/:storeId - Delete store
 export const deleteStore = asyncHandler(async (req: Request, res: Response) => {
-  const user = req.user;
-  const storeId = req.params.id;
-
-  if (!user?.id) {
+  const userId = req.user?.id;
+  if (!userId) {
     throw new UnauthorizedError(
-      'To perform this action, authentication is required!'
+      'Authentication failed! Please log in to continue.'
     );
   }
 
-  if (!storeId) {
-    throw new BadRequestError('Store id is required!');
+  const storeId = storeIdSchema.safeParse(req.params.storeId);
+  if (!storeId.success) {
+    throw new BadRequestError(storeId.error?.errors[0]?.message);
   }
 
-  const store = await deleteStoreQuery(user.id, storeId);
-  if (!store) {
+  const existingStore = await getStoreQuery(userId, storeId.data);
+  if (!existingStore) {
     throw new NotFoundError('Store not found!');
   }
+
+  const store = await deleteStoreQuery(userId, existingStore.id);
 
   res.status(200).json({
     success: true,

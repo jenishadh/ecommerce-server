@@ -11,13 +11,13 @@ import { authMiddleware } from '../../middlewares/auth.middleware';
 
 const categoriesRoutes: Router = Router();
 
-categoriesRoutes.post('/:id/categories', authMiddleware, createCategory);
-categoriesRoutes.get('/:id/categories', authMiddleware, getCategories);
+categoriesRoutes.post('/:storeId/categories', authMiddleware, createCategory);
+categoriesRoutes.get('/:storeId/categories', authMiddleware, getCategories);
 
 const categoryRoutes: Router = Router();
 
-categoryRoutes.get('/:id', authMiddleware, getCategory);
-categoryRoutes.patch('/:id', authMiddleware, updateCategory);
-categoryRoutes.delete('/:id', authMiddleware, deleteCategory);
+categoryRoutes.get('/:categoryId', authMiddleware, getCategory);
+categoryRoutes.patch('/:categoryId', authMiddleware, updateCategory);
+categoryRoutes.delete('/:categoryId', authMiddleware, deleteCategory);
 
 export { categoriesRoutes, categoryRoutes };

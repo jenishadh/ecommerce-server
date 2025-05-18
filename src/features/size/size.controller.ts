@@ -11,44 +11,41 @@ import { getStoreQuery } from '../store/store.queries';
 import { asyncHandler } from '../../lib/async-handler';
 import {
   BadRequestError,
-  InternalError,
   NotFoundError,
   UnauthorizedError,
 } from '../../lib/api-error';
+import { nameSchema, sizeIdSchema, storeIdSchema } from './size.schema';
 
-// POST /api/v1/stores/:id/sizes - Create new size
+// POST /api/v1/stores/:storeId/sizes - Create new size
 export const createSize = asyncHandler(async (req: Request, res: Response) => {
-  const user = req.user;
-  const { name, value } = req.body;
-  const storeId = req.params.id;
-
-  if (!user?.id) {
+  const userId = req.user?.id;
+  if (!userId) {
     throw new UnauthorizedError(
-      'To perform this action, authentication is required!'
+      'Authentication failed! Please log in to continue.'
     );
   }
 
-  if (!name) {
-    throw new BadRequestError('Size name is required!');
+  const storeId = storeIdSchema.safeParse(req.params.storeId);
+  if (!storeId.success) {
+    throw new BadRequestError(storeId.error?.errors[0]?.message);
   }
 
-  if (!value) {
-    throw new BadRequestError('Size value is required!');
+  const name = nameSchema.safeParse(req.body.name);
+  if (!name.success) {
+    throw new BadRequestError(name.error?.errors[0]?.message);
   }
 
-  if (!storeId) {
-    throw new BadRequestError('Store id is required!');
+  const value = nameSchema.safeParse(req.body.value);
+  if (!value.success) {
+    throw new BadRequestError(value.error?.errors[0]?.message);
   }
 
-  const storeIdByUser = await getStoreQuery(user.id, storeId);
-  if (!storeIdByUser) {
-    throw new UnauthorizedError('Access denied!');
+  const store = await getStoreQuery(userId, storeId.data);
+  if (!store) {
+    throw new NotFoundError('Store not found!');
   }
 
-  const size = await createSizeQuery(name, value, storeIdByUser.id);
-  if (!size) {
-    throw new InternalError('Failed to create size!');
-  }
+  const size = await createSizeQuery(name.data, value.data, store.id);
 
   res.status(201).json({
     success: true,
@@ -61,25 +58,24 @@ export const createSize = asyncHandler(async (req: Request, res: Response) => {
 
 // GET /api/v1/stores/:id/sizes - Get all sizes
 export const getSizes = asyncHandler(async (req: Request, res: Response) => {
-  const user = req.user;
-  const storeId = req.params.id;
-
-  if (!user?.id) {
+  const userId = req.user?.id;
+  if (!userId) {
     throw new UnauthorizedError(
-      'To perform this action, authentication is required!'
+      'Authentication failed! Please log in to continue.'
     );
   }
 
-  if (!storeId) {
-    throw new BadRequestError('Store id is required!');
+  const storeId = storeIdSchema.safeParse(req.params.storeId);
+  if (!storeId.success) {
+    throw new BadRequestError(storeId.error?.errors[0]?.message);
   }
 
-  const storeIdByUser = await getStoreQuery(user.id, storeId);
-  if (!storeIdByUser) {
-    throw new UnauthorizedError('Access denied!');
+  const store = await getStoreQuery(userId, storeId.data);
+  if (!store) {
+    throw new NotFoundError('Store not found!');
   }
 
-  const sizes = await getSizesQuery(user.id, storeId);
+  const sizes = await getSizesQuery(userId, store.id);
 
   res.status(200).json({
     success: true,
@@ -90,26 +86,26 @@ export const getSizes = asyncHandler(async (req: Request, res: Response) => {
   });
 });
 
-// GET /api/v1/sizes/:id - Get size
+// GET /api/v1/sizes/:sizeId - Get size
 export const getSize = asyncHandler(async (req: Request, res: Response) => {
-  const user = req.user;
-  const sizeId = req.params.id;
-
-  if (!user?.id) {
+  const userId = req.user?.id;
+  if (!userId) {
     throw new UnauthorizedError(
-      'To perform this action, authentication is required!'
+      'Authentication failed! Please log in to continue.'
     );
   }
-  if (!sizeId) {
-    throw new BadRequestError('Size id is required!');
+
+  const sizeId = sizeIdSchema.safeParse(req.params.sizeId);
+  if (!sizeId.success) {
+    throw new BadRequestError(sizeId.error?.errors[0]?.message);
   }
 
-  const size = await getSizeQuery(user.id, sizeId);
+  const size = await getSizeQuery(userId, sizeId.data);
   if (!size) {
     throw new NotFoundError('Size not found!');
   }
 
-  res.status(201).json({
+  res.status(200).json({
     success: true,
     data: {
       message: 'Size fetched successfully!',
@@ -120,34 +116,41 @@ export const getSize = asyncHandler(async (req: Request, res: Response) => {
 
 // PATCH /api/v1/sizes/:id - Update size
 export const updateSize = asyncHandler(async (req: Request, res: Response) => {
-  const user = req.user;
-  const sizeId = req.params.id;
-  const { name, value } = req.body;
-
-  if (!user?.id) {
+  const userId = req.user?.id;
+  if (!userId) {
     throw new UnauthorizedError(
-      'To perform this action, authentication is required!'
+      'Authentication failed! Please log in to continue.'
     );
   }
 
-  if (!sizeId) {
-    throw new BadRequestError('Size id is required!');
+  const sizeId = sizeIdSchema.safeParse(req.params.storeId);
+  if (!sizeId.success) {
+    throw new BadRequestError(sizeId.error?.errors[0]?.message);
   }
 
-  if (!name) {
-    throw new BadRequestError('Size name is required!');
+  const name = nameSchema.safeParse(req.body.name);
+  if (!name.success) {
+    throw new BadRequestError(name.error?.errors[0]?.message);
   }
 
-  if (!value) {
-    throw new BadRequestError('Size value is required!');
+  const value = nameSchema.safeParse(req.body.value);
+  if (!value.success) {
+    throw new BadRequestError(value.error?.errors[0]?.message);
   }
 
-  const size = await updateSizeQuery(user.id, sizeId, name, value);
-  if (!size) {
+  const existingSize = await getSizeQuery(userId, sizeId.data);
+  if (!existingSize) {
     throw new NotFoundError('Size not found!');
   }
 
-  res.status(201).json({
+  const size = await updateSizeQuery(
+    userId,
+    existingSize.id,
+    name.data,
+    value.data
+  );
+
+  res.status(200).json({
     success: true,
     data: {
       message: 'Size updated successfully!',
@@ -158,24 +161,26 @@ export const updateSize = asyncHandler(async (req: Request, res: Response) => {
 
 // DELETE /api/v1/sizes/:id - Delete size
 export const deleteSize = asyncHandler(async (req: Request, res: Response) => {
-  const user = req.user;
-  const sizeId = req.params.id;
-
-  if (!user?.id) {
+  const userId = req.user?.id;
+  if (!userId) {
     throw new UnauthorizedError(
-      'To perform this action, authentication is required!'
+      'Authentication failed! Please log in to continue.'
     );
   }
-  if (!sizeId) {
-    throw new BadRequestError('Size id is required!');
+
+  const sizeId = sizeIdSchema.safeParse(req.params.storeId);
+  if (!sizeId.success) {
+    throw new BadRequestError(sizeId.error?.errors[0]?.message);
   }
 
-  const size = await deleteSizeQuery(user.id, sizeId);
-  if (!size) {
+  const existingSize = await getSizeQuery(userId, sizeId.data);
+  if (!existingSize) {
     throw new NotFoundError('Size not found!');
   }
 
-  res.status(201).json({
+  const size = await deleteSizeQuery(userId, existingSize.id);
+
+  res.status(200).json({
     success: true,
     data: {
       message: 'Size deleted successfully!',
