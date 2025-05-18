@@ -42,38 +42,30 @@ export async function updateBillboardQuery(
   label: string,
   imageUrl: string
 ) {
-  try {
-    return await db.billboard.update({
-      where: {
-        id: billboardId,
-        store: {
-          userId,
-        },
+  return await db.billboard.update({
+    where: {
+      id: billboardId,
+      store: {
+        userId,
       },
-      data: {
-        label,
-        imageUrl,
-      },
-    });
-  } catch {
-    return null;
-  }
+    },
+    data: {
+      label,
+      imageUrl,
+    },
+  });
 }
 
 export async function deleteBillboardQuery(
   userId: string,
   billboardId: string
 ) {
-  try {
-    return await db.billboard.delete({
-      where: {
-        id: billboardId,
-        store: {
-          userId,
-        },
+  return await db.billboard.delete({
+    where: {
+      id: billboardId,
+      store: {
+        userId,
       },
-    });
-  } catch {
-    return null;
-  }
+    },
+  });
 }

@@ -17,6 +17,7 @@ const app: Express = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use(express.static('public'));
 
 /* ROUTES */
 app.use('/api/v1/healthcheck', healthRoutes);

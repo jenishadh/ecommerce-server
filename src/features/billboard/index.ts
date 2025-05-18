@@ -8,16 +8,27 @@ import {
   updateBillboard,
 } from './billboard.controller';
 import { authMiddleware } from '../../middlewares/auth.middleware';
+import { upload } from '../../middlewares/multer.middleware';
 
 const billboardsRoutes: Router = Router();
 
-billboardsRoutes.post('/:id/billboards', authMiddleware, createBillboard);
-billboardsRoutes.get('/:id/billboards', authMiddleware, getBillboards);
+billboardsRoutes.post(
+  '/:storeId/billboards',
+  authMiddleware,
+  upload.single('image'),
+  createBillboard
+);
+billboardsRoutes.get('/:storeId/billboards', authMiddleware, getBillboards);
 
 const billboardRoutes: Router = Router();
 
-billboardRoutes.get('/:id', authMiddleware, getBillboard);
-billboardRoutes.patch('/:id', authMiddleware, updateBillboard);
-billboardRoutes.delete('/:id', authMiddleware, deleteBillboard);
+billboardRoutes.get('/:billboardId', authMiddleware, getBillboard);
+billboardRoutes.patch(
+  '/:billboardId',
+  authMiddleware,
+  upload.single('image'),
+  updateBillboard
+);
+billboardRoutes.delete('/:billboardId', authMiddleware, deleteBillboard);
 
 export { billboardsRoutes, billboardRoutes };

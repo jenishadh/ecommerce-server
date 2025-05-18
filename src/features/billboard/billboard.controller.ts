@@ -15,78 +15,85 @@ import {
   NotFoundError,
   UnauthorizedError,
 } from '../../lib/api-error';
+import { uploadOnCloudinary } from '../../lib/cloudinary';
+import {
+  billboardIdSchema,
+  labelSchema,
+  storeIdSchema,
+} from './billboard.schema';
 
-// POST /api/v1/stores/:id/billboards - Create new billboard
+// POST /api/v1/stores/:storeId/billboards - Create new billboard
 export const createBillboard = asyncHandler(
   async (req: Request, res: Response) => {
-    const user = req.user;
-    const { label, imageUrl } = req.body;
-    const storeId = req.params.id;
-
-    if (!user?.id) {
+    const userId = req.user?.id;
+    if (!userId) {
       throw new UnauthorizedError(
-        'To perform this action, authentication is required!'
+        'Authentication failed! Please log in to continue.'
       );
     }
 
-    if (!label) {
-      throw new BadRequestError('Billboard label is required!');
+    const storeId = storeIdSchema.safeParse(req.params.storeId);
+    if (!storeId.success) {
+      throw new BadRequestError(storeId.error?.errors[0]?.message);
     }
 
-    if (!imageUrl) {
-      throw new BadRequestError('Image URL is required!');
+    const label = labelSchema.safeParse(req.body.label);
+    if (!label.success) {
+      throw new BadRequestError(label.error?.errors[0]?.message);
     }
 
-    if (!storeId) {
-      throw new BadRequestError('Store id is required!');
+    const image = req.file;
+    if (!image) {
+      throw new BadRequestError('Billboard image is required!');
     }
 
-    const storeIdByUser = await getStoreQuery(user.id, storeId);
-    if (!storeIdByUser) {
-      throw new UnauthorizedError('Access denied!');
+    const store = await getStoreQuery(userId, storeId.data);
+    if (!store) {
+      throw new NotFoundError('Store not found!');
+    }
+
+    const uploadedImage = await uploadOnCloudinary(image.path);
+    if (!uploadedImage) {
+      throw new InternalError('Image upload failed. Please try again later.');
     }
 
     const billboard = await createBillboardQuery(
-      storeIdByUser.id,
-      label,
-      imageUrl
+      store.id,
+      label.data,
+      uploadedImage.secure_url
     );
-    if (!billboard) {
-      throw new InternalError('Failed to create billboard!');
-    }
 
-    res.status(201).json({
+    res.status(200).json({
       success: true,
       data: {
-        message: 'Billboard created successfully!',
-        billboard: billboard,
+        message: 'Billboard created successfully.',
+        billboard,
       },
     });
   }
 );
 
-// GET /api/v1/stores/:id/billboards - get all billboards
+// GET /api/v1/stores/:storeId/billboards - get all billboards
 export const getBillboards = asyncHandler(
   async (req: Request, res: Response) => {
-    const user = req.user;
-    const storeId = req.params.id;
-
-    if (!user?.id) {
+    const userId = req.user?.id;
+    if (!userId) {
       throw new UnauthorizedError(
-        'To perform this action, authentication is required!'
+        'Authentication failed! Please log in to continue.'
       );
     }
 
-    if (!storeId) {
-      throw new BadRequestError('Store id is required!');
+    const storeId = storeIdSchema.safeParse(req.params.storeId);
+    if (!storeId.success) {
+      throw new BadRequestError(storeId.error?.errors[0]?.message);
     }
 
-    const storeIdByUser = await getStoreQuery(user.id, storeId);
-    if (!storeIdByUser) {
-      throw new UnauthorizedError('Access denied!');
+    const store = await getStoreQuery(userId, storeId.data);
+    if (!store) {
+      throw new NotFoundError('Store not found!');
     }
 
-    const billboards = await getBillboardsQuery(user.id, storeId);
+    const billboards = await getBillboardsQuery(userId, store.id);
 
     res.status(200).json({
       success: true,
@@ -98,27 +105,27 @@ export const getBillboards = asyncHandler(
   }
 );
 
-// GET /api/v1/billboards/:id - get billboard
+// GET /api/v1/billboards/:billboardId - get billboard
 export const getBillboard = asyncHandler(
   async (req: Request, res: Response) => {
-    const user = req.user;
-    const billboardId = req.params.id;
-
-    if (!user?.id) {
+    const userId = req.user?.id;
+    if (!userId) {
       throw new UnauthorizedError(
-        'To perform this action, authentication is required!'
+        'Authentication failed. Please log in to continue.'
       );
     }
-    if (!billboardId) {
-      throw new BadRequestError('Billboard id is required!');
+
+    const billboardId = billboardIdSchema.safeParse(req.params.billboardId);
+    if (!billboardId.success) {
+      throw new BadRequestError(billboardId.error?.errors[0]?.message);
     }
 
-    const billboard = await getBillboardQuery(user.id, billboardId);
+    const billboard = await getBillboardQuery(userId, billboardId.data);
     if (!billboard) {
-      throw new NotFoundError('Billboard not found!');
+      throw new NotFoundError('Billboard not found.');
     }
 
-    res.status(201).json({
+    res.status(200).json({
       success: true,
       data: {
         message: 'Billboard fetched successfully!',
@@ -128,42 +135,49 @@ export const getBillboard = asyncHandler(
   }
 );
 
-// PATCH /api/v1/billboards/:id - update billboard
+// PATCH /api/v1/billboards/:billboardId - update billboard
 export const updateBillboard = asyncHandler(
   async (req: Request, res: Response) => {
-    const user = req.user;
-    const billboardId = req.params.id;
-    const { label, imageUrl } = req.body;
-
-    if (!user?.id) {
+    const userId = req.user?.id;
+    if (!userId) {
       throw new UnauthorizedError(
-        'To perform this action, authentication is required!'
+        'Authentication failed. Please log in to continue.'
       );
     }
 
-    if (!billboardId) {
-      throw new BadRequestError('Billboard id is required!');
+    const billboardId = billboardIdSchema.safeParse(req.params.billboardId);
+    if (!billboardId.success) {
+      throw new BadRequestError(billboardId.error?.errors[0]?.message);
     }
 
-    if (!label) {
-      throw new BadRequestError('Billboard label is required!');
+    const label = labelSchema.safeParse(req.body.label);
+    if (!label.success) {
+      throw new BadRequestError(label.error?.errors[0]?.message);
     }
 
-    if (!imageUrl) {
-      throw new BadRequestError('Image URL is required!');
+    const image = req.file;
+    if (!image) {
+      throw new BadRequestError('Billboard image is required.');
     }
 
-    const billboard = await updateBillboardQuery(
-      user.id,
-      billboardId,
-      label,
-      imageUrl
-    );
-    if (!billboard) {
+    const existingBillboard = await getBillboardQuery(userId, billboardId.data);
+    if (!existingBillboard) {
       throw new NotFoundError('Billboard not found!');
     }
 
-    res.status(201).json({
+    const uploadedImage = await uploadOnCloudinary(image.path);
+    if (!uploadedImage) {
+      throw new InternalError('Image upload failed. Please try again later.');
+    }
+
+    const billboard = await updateBillboardQuery(
+      userId,
+      existingBillboard.id,
+      label.data,
+      uploadedImage.secure_url
+    );
+
+    res.status(200).json({
       success: true,
       data: {
         message: 'Billboard updated successfully!',
@@ -173,25 +187,29 @@ export const updateBillboard = asyncHandler(
   }
 );
 
-// DELETE /api/v1/billboards/:id - delete billboard
+// DELETE /api/v1/billboards/:billboardId - delete billboard
 export const deleteBillboard = asyncHandler(
   async (req: Request, res: Response) => {
-    const user = req.user;
-    const billboardId = req.params.id;
-
-    if (!user?.id) {
-      throw new UnauthorizedError('You are not logged in!');
-    }
-    if (!billboardId) {
-      throw new BadRequestError('Billboard id is required!');
+    const userId = req.user?.id;
+    if (!userId) {
+      throw new UnauthorizedError(
+        'Authentication failed. Please log in to continue.'
+      );
     }
 
-    const billboard = await deleteBillboardQuery(user.id, billboardId);
-    if (!billboard) {
+    const billboardId = billboardIdSchema.safeParse(req.params.billboardId);
+    if (!billboardId.success) {
+      throw new BadRequestError(billboardId.error?.errors[0]?.message);
+    }
+
+    const existingBillboard = await getBillboardQuery(userId, billboardId.data);
+    if (!existingBillboard) {
       throw new NotFoundError('Billboard not found!');
     }
 
-    res.status(201).json({
+    const billboard = await deleteBillboardQuery(userId, existingBillboard.id);
+
+    res.status(200).json({
       success: true,
       data: {
         message: 'Billboard deleted successfully!',
