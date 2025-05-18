@@ -3,18 +3,27 @@ import { Request, Response, NextFunction } from 'express';
 import { ApiError } from '../lib/api-error';
 
 export async function errorMiddleware(
-  err: Error,
+  error: Error,
   req: Request,
   res: Response,
   next: NextFunction
 ) {
-  if (err instanceof ApiError) {
-    console.log(err);
-    res.status(err.statusCode || 500).json({
+  if (error instanceof ApiError) {
+    console.log(error);
+    res.status(error.statusCode).json({
       success: false,
       error: {
-        type: err.type || 'InternalError',
-        message: err.message || 'Internal server error',
+        type: error.type,
+        message: error.message,
+      },
+    });
+  } else {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      error: {
+        type: 'InternalError',
+        message: 'Internal server error',
       },
     });
   }
