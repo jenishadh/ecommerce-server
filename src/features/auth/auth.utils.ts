@@ -7,6 +7,7 @@ import {
   refreshTokenExpiresIn,
   refreshTokenSecret,
 } from '../../config';
+import { UnauthorizedError } from '../../lib/api-error';
 
 export function generateAccessToken(userId: string) {
   const payload = {
@@ -27,9 +28,19 @@ export function generateRefreshToken(userId: string) {
 }
 
 export function verifyAccessToken(token: string) {
-  return jwt.verify(token, accessTokenSecret as jwt.Secret) as decodedToken;
+  try {
+    return jwt.verify(token, accessTokenSecret as jwt.Secret) as decodedToken;
+  } catch (error) {
+    console.log(error);
+    throw new UnauthorizedError('Invalid or expired access token!');
+  }
 }
 
 export function verifyRefreshToken(token: string) {
-  return jwt.verify(token, refreshTokenSecret as jwt.Secret) as decodedToken;
+  try {
+    return jwt.verify(token, refreshTokenSecret as jwt.Secret) as decodedToken;
+  } catch (error) {
+    console.log(error);
+    throw new UnauthorizedError('Invalid or expired refresh token!');
+  }
 }

@@ -13,11 +13,7 @@ import {
   generateRefreshToken,
   verifyRefreshToken,
 } from './auth.utils';
-import {
-  BadRequestError,
-  InternalError,
-  UnauthorizedError,
-} from '../../lib/api-error';
+import { BadRequestError, UnauthorizedError } from '../../lib/api-error';
 import { asyncHandler } from '../../lib/async-handler';
 
 // POST /api/v1/auth/register - Register new user
@@ -35,14 +31,11 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
-  const user = await createUser({
+  await createUser({
     name,
     email,
     password: hashedPassword,
   });
-  if (!user) {
-    throw new InternalError('Failed to create user!');
-  }
 
   res.status(201).json({
     success: true,
@@ -73,10 +66,7 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
 
   const accessToken = generateAccessToken(user.id);
   const refreshToken = generateRefreshToken(user.id);
-  const response = await updateRefreshToken(user.id, refreshToken);
-  if (!response) {
-    throw new InternalError('Failed to update refresh token!');
-  }
+  await updateRefreshToken(user.id, refreshToken);
 
   const securityOptions = {
     httpOnly: true,
@@ -103,13 +93,10 @@ export const refresh = asyncHandler(async (req: Request, res: Response) => {
   }
 
   const payload = verifyRefreshToken(refreshToken);
-  if (!payload) {
-    throw new UnauthorizedError('Invalid refresh token!');
-  }
 
   const user = await getUserById(payload.id);
   if (!user) {
-    throw new UnauthorizedError('Invalid refresh token!');
+    throw new UnauthorizedError('User not found!');
   }
 
   if (user.refreshToken !== refreshToken) {

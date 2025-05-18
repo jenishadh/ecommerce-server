@@ -17,26 +17,18 @@ export async function authMiddleware(
   res: Response,
   next: NextFunction
 ) {
-  try {
-    const accessToken = req.cookies.accessToken;
-    if (!accessToken) {
-      throw new UnauthorizedError('Access token not found!');
-    }
-
-    const payload = verifyAccessToken(accessToken);
-    if (!payload) {
-      throw new UnauthorizedError('Invalid access token!');
-    }
-
-    const user = await getUserProfile(payload.id);
-    if (!user) {
-      throw new UnauthorizedError('Invalid access token!');
-    }
-
-    req.user = user;
-    next();
-  } catch (error) {
-    console.log(error);
-    throw new UnauthorizedError('Invalid access token!');
+  const accessToken = req.cookies.accessToken;
+  if (!accessToken) {
+    throw new UnauthorizedError('Access token not found!');
   }
+
+  const payload = verifyAccessToken(accessToken);
+
+  const user = await getUserProfile(payload.id);
+  if (!user) {
+    throw new UnauthorizedError('User not found!');
+  }
+
+  req.user = user;
+  next();
 }
