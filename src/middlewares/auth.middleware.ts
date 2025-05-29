@@ -2,9 +2,9 @@ import { Request, Response, NextFunction } from 'express';
 import z from 'zod';
 
 import { UnauthorizedError } from '../lib/api-error';
-import { userSchema } from '../features/auth/auth.schema';
-import { getUserProfile } from '../features/auth/auth.queries';
-import { verifyAccessToken } from '../features/auth/auth.utils';
+import { userSchema } from '../api/auth/auth.schema';
+import { getUserProfile } from '../api/auth/auth.queries';
+import { verifyAccessToken } from '../api/auth/auth.utils';
 
 declare module 'express' {
   interface Request {

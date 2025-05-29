@@ -3,13 +3,13 @@ import cookieParser from 'cookie-parser';
 
 import { errorMiddleware } from './middlewares/error.middleware';
 /* IMPORT ROUTES */
-import healthRoutes from './features/healthcheck';
-import authRoutes from './features/auth';
-import storeRoutes from './features/store';
-import { billboardRoutes, billboardsRoutes } from './features/billboard';
-import { categoryRoutes, categoriesRoutes } from './features/category';
-import { colorRoutes, colorsRoutes } from './features/color';
-import { sizeRoutes, sizesRoutes } from './features/size';
+import healthRoutes from './api/healthcheck';
+import authRoutes from './api/auth';
+import storeRoutes from './api/store';
+import { billboardRoutes, billboardsRoutes } from './api/billboard';
+import { categoryRoutes, categoriesRoutes } from './api/category';
+import { colorRoutes, colorsRoutes } from './api/color';
+import { sizeRoutes, sizesRoutes } from './api/size';
 
 const app: Express = express();
 
