@@ -1,23 +1,30 @@
 import { Router } from 'express';
 
-import {
-  createCategory,
-  deleteCategory,
-  getCategory,
-  getCategories,
-  updateCategory,
-} from './category.controller';
+import * as Controller from './category.controller';
+
 import { authMiddleware } from '../../middlewares/auth.middleware';
 
-const categoriesRoutes: Router = Router();
+const storeCategoryRouter: Router = Router();
 
-categoriesRoutes.post('/:storeId/categories', authMiddleware, createCategory);
-categoriesRoutes.get('/:storeId/categories', authMiddleware, getCategories);
+storeCategoryRouter.post(
+  '/:storeId/categories',
+  authMiddleware,
+  Controller.createCategory
+);
+storeCategoryRouter.get(
+  '/:storeId/categories',
+  authMiddleware,
+  Controller.getCategories
+);
 
-const categoryRoutes: Router = Router();
+const categoryRouter: Router = Router();
 
-categoryRoutes.get('/:categoryId', authMiddleware, getCategory);
-categoryRoutes.patch('/:categoryId', authMiddleware, updateCategory);
-categoryRoutes.delete('/:categoryId', authMiddleware, deleteCategory);
+categoryRouter.get('/:categoryId', authMiddleware, Controller.getCategory);
+categoryRouter.patch('/:categoryId', authMiddleware, Controller.updateCategory);
+categoryRouter.delete(
+  '/:categoryId',
+  authMiddleware,
+  Controller.deleteCategory
+);
 
-export { categoriesRoutes, categoryRoutes };
+export { storeCategoryRouter, categoryRouter };

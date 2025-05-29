@@ -1,154 +1,126 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 
-import {
-  createStoreQuery,
-  deleteStoreQuery,
-  getStoreQuery,
-  getStoresQuery,
-  updateStoreQuery,
-} from './store.queries';
-import {
-  BadRequestError,
-  NotFoundError,
-  UnauthorizedError,
-} from '../../lib/api-error';
+import * as Query from './store.queries';
+import * as Schema from './store.schema';
+
+import { AuthenticatedRequest } from '../../types';
+import { idSchema } from '../../schemas';
 import { asyncHandler } from '../../lib/async-handler';
-import { nameSchema, storeIdSchema } from './store.schema';
+import { findEntity } from '../../utils/find-entity';
+import { validateId, validateSchema } from '../../utils/validate';
 
 // POST /api/v1/stores - Create new store
-export const createStore = asyncHandler(async (req: Request, res: Response) => {
-  const userId = req.user?.id;
-  if (!userId) {
-    throw new UnauthorizedError(
-      'Authentication failed! Please log in to continue.'
-    );
+export const createStore = asyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    const userId = req.user.id;
+
+    const validatedBody = validateSchema(Schema.store, { ...req.body });
+    const { name } = validatedBody;
+
+    const store = await Query.createStore(userId, name);
+
+    res.status(201).json({
+      success: true,
+      data: {
+        message: 'Store created successfully!',
+        store: store,
+      },
+    });
   }
-
-  const name = nameSchema.safeParse(req.body.name);
-  if (!name.success) {
-    throw new BadRequestError(name.error?.errors[0]?.message);
-  }
-
-  const store = await createStoreQuery(userId, name.data);
-
-  res.status(201).json({
-    success: true,
-    data: {
-      message: 'Store created successfully!',
-      store: store,
-    },
-  });
-});
+);
 
 // GET /api/v1/stores - Get all stores
-export const getStores = asyncHandler(async (req: Request, res: Response) => {
-  const userId = req.user?.id;
-  if (!userId) {
-    throw new UnauthorizedError(
-      'Authentication failed! Please log in to continue.'
-    );
+export const getStores = asyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    const userId = req.user.id;
+
+    const stores = await Query.getStoresById(userId);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        message: 'Stores fetched successfully!',
+        stores: stores,
+      },
+    });
   }
-
-  const stores = await getStoresQuery(userId);
-
-  res.status(200).json({
-    success: true,
-    data: {
-      message: 'Stores fetched successfully!',
-      stores: stores,
-    },
-  });
-});
+);
 
 // GET /api/v1/store/:storeId - Get store
-export const getStore = asyncHandler(async (req: Request, res: Response) => {
-  const userId = req.user?.id;
-  if (!userId) {
-    throw new UnauthorizedError(
-      'Authentication failed! Please log in to continue.'
+export const getStore = asyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    const userId = req.user.id;
+
+    const storeId = validateId(idSchema('store'), req.params.storeId);
+
+    const store = await findEntity(
+      userId,
+      storeId,
+      Query.getStoreById,
+      'Store'
     );
-  }
 
-  const storeId = storeIdSchema.safeParse(req.params.storeId);
-  if (!storeId.success) {
-    throw new BadRequestError(storeId.error?.errors[0]?.message);
+    res.status(200).json({
+      success: true,
+      data: {
+        message: 'Store fetched successfully!',
+        store: store,
+      },
+    });
   }
-
-  const store = await getStoreQuery(userId, storeId.data);
-  if (!store) {
-    throw new NotFoundError('Store not found!');
-  }
-
-  res.status(200).json({
-    success: true,
-    data: {
-      message: 'Store fetched successfully!',
-      store: store,
-    },
-  });
-});
+);
 
 // PATCH /api/v1/stores/:storeId- Update store
-export const updateStore = asyncHandler(async (req: Request, res: Response) => {
-  const userId = req.user?.id;
-  if (!userId) {
-    throw new UnauthorizedError(
-      'Authentication failed! Please log in to continue.'
+export const updateStore = asyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    const userId = req.user.id;
+
+    const storeId = validateId(idSchema('store'), req.params.storeId);
+
+    const validatedBody = validateSchema(Schema.store, { ...req.body });
+    const { name } = validatedBody;
+
+    const existingStore = await findEntity(
+      userId,
+      storeId,
+      Query.getStoreById,
+      'Store'
     );
+
+    const store = await Query.updateStore(userId, existingStore.id, name);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        message: 'Store updated successfully!',
+        store: store,
+      },
+    });
   }
-
-  const storeId = storeIdSchema.safeParse(req.params.storeId);
-  if (!storeId.success) {
-    throw new BadRequestError(storeId.error?.errors[0]?.message);
-  }
-
-  const name = nameSchema.safeParse(req.body.name);
-  if (!name.success) {
-    throw new BadRequestError(name.error?.errors[0]?.message);
-  }
-
-  const existingStore = await getStoreQuery(userId, storeId.data);
-  if (!existingStore) {
-    throw new NotFoundError('Store not found!');
-  }
-
-  const store = await updateStoreQuery(userId, existingStore.id, name.data);
-
-  res.status(200).json({
-    success: true,
-    data: {
-      message: 'Store updated successfully!',
-      store: store,
-    },
-  });
-});
+);
 
 // DELETE /api/v1/stores/:storeId - Delete store
-export const deleteStore = asyncHandler(async (req: Request, res: Response) => {
-  const userId = req.user?.id;
-  if (!userId) {
-    throw new UnauthorizedError(
-      'Authentication failed! Please log in to continue.'
+export const deleteStore = asyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    const userId = req.user.id;
+
+    const storeId = validateId(idSchema('store'), req.params.storeId);
+
+    const existingStore = await findEntity(
+      userId,
+      storeId,
+      Query.getStoreById,
+      'Store'
     );
+
+    const store = await Query.deleteStore(userId, existingStore.id);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        message: 'Store deleted successfully!',
+        store: store,
+      },
+    });
   }
-
-  const storeId = storeIdSchema.safeParse(req.params.storeId);
-  if (!storeId.success) {
-    throw new BadRequestError(storeId.error?.errors[0]?.message);
-  }
-
-  const existingStore = await getStoreQuery(userId, storeId.data);
-  if (!existingStore) {
-    throw new NotFoundError('Store not found!');
-  }
-
-  const store = await deleteStoreQuery(userId, existingStore.id);
-
-  res.status(200).json({
-    success: true,
-    data: {
-      message: 'Store deleted successfully!',
-      store: store,
-    },
-  });
-});
+);

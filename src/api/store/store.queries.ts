@@ -1,6 +1,6 @@
 import db from '../../lib/db';
 
-export async function createStoreQuery(userId: string, name: string) {
+export async function createStore(userId: string, name: string) {
   return await db.store.create({
     data: {
       name,
@@ -9,7 +9,7 @@ export async function createStoreQuery(userId: string, name: string) {
   });
 }
 
-export async function getStoresQuery(userId: string) {
+export async function getStoresById(userId: string) {
   return await db.store.findMany({
     where: {
       userId,
@@ -17,7 +17,7 @@ export async function getStoresQuery(userId: string) {
   });
 }
 
-export async function getStoreQuery(userId: string, storeId: string) {
+export async function getStoreById(userId: string, storeId: string) {
   return await db.store.findUnique({
     where: {
       id: storeId,
@@ -26,7 +26,7 @@ export async function getStoreQuery(userId: string, storeId: string) {
   });
 }
 
-export async function updateStoreQuery(
+export async function updateStore(
   userId: string,
   storeId: string,
   name: string
@@ -42,7 +42,7 @@ export async function updateStoreQuery(
   });
 }
 
-export async function deleteStoreQuery(userId: string, storeId: string) {
+export async function deleteStore(userId: string, storeId: string) {
   return await db.store.delete({
     where: {
       id: storeId,

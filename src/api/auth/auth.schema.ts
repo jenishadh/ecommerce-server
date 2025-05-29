@@ -16,18 +16,18 @@ const password = z
   })
   .trim();
 
-export const loginSchema = z.object({
+export const login = z.object({
   email: email,
   password: z.string().min(1, { message: 'Please enter your password' }),
 });
 
-export const registerSchema = z.object({
+export const register = z.object({
   name: z.string().min(2, { message: 'Please enter your full name' }).trim(),
   email: email,
   password: password,
 });
 
-export const userSchema = z.object({
+export const user = z.object({
   id: z.string(),
   name: z.string(),
   email: z.string(),

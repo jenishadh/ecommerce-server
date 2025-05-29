@@ -1,6 +1,6 @@
 import db from '../../lib/db';
 
-export async function createColorQuery(
+export async function createColor(
   name: string,
   value: string,
   storeId: string
@@ -14,7 +14,7 @@ export async function createColorQuery(
   });
 }
 
-export async function getColorsQuery(userId: string, storeId: string) {
+export async function getColorsById(userId: string, storeId: string) {
   return await db.color.findMany({
     where: {
       storeId,
@@ -25,7 +25,7 @@ export async function getColorsQuery(userId: string, storeId: string) {
   });
 }
 
-export async function getColorQuery(userId: string, colorId: string) {
+export async function getColorById(userId: string, colorId: string) {
   return await db.color.findUnique({
     where: {
       id: colorId,
@@ -36,7 +36,7 @@ export async function getColorQuery(userId: string, colorId: string) {
   });
 }
 
-export async function updateColorQuery(
+export async function updateColor(
   userId: string,
   colorId: string,
   name: string,
@@ -56,7 +56,7 @@ export async function updateColorQuery(
   });
 }
 
-export async function deleteColorQuery(userId: string, colorId: string) {
+export async function deleteColor(userId: string, colorId: string) {
   return await db.color.delete({
     where: {
       id: colorId,

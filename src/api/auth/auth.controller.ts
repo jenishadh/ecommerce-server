@@ -1,37 +1,29 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 
-import { loginSchema, registerSchema } from './auth.schema';
-import {
-  createUser,
-  getUserByEmail,
-  getUserById,
-  updateRefreshToken,
-} from './auth.queries';
-import {
-  generateAccessToken,
-  generateRefreshToken,
-  verifyRefreshToken,
-} from './auth.utils';
-import { BadRequestError, UnauthorizedError } from '../../lib/api-error';
+import * as Query from './auth.queries';
+import * as Utility from './auth.utils';
+import * as Schema from './auth.schema';
+import * as Error from '../../lib/api-error';
+
 import { asyncHandler } from '../../lib/async-handler';
 
 // POST /api/v1/auth/register - Register new user
 export const register = asyncHandler(async (req: Request, res: Response) => {
-  const validatedFields = registerSchema.safeParse(req.body);
+  const validatedFields = Schema.register.safeParse(req.body);
   if (!validatedFields.success) {
-    throw new BadRequestError('Invalid fields!');
+    throw new Error.BadRequestError('Invalid fields!');
   }
 
   const { name, email, password } = validatedFields.data;
 
-  const existingUser = await getUserByEmail(email);
+  const existingUser = await Query.getUserByEmail(email);
   if (existingUser) {
-    throw new BadRequestError('User already exists! Please login.');
+    throw new Error.BadRequestError('User already exists! Please login.');
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
-  await createUser({
+  await Query.createUser({
     name,
     email,
     password: hashedPassword,
@@ -47,26 +39,26 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
 
 // POST /api/v1/auth/login - Login user
 export const login = asyncHandler(async (req: Request, res: Response) => {
-  const validatedFields = loginSchema.safeParse(req.body);
+  const validatedFields = Schema.login.safeParse(req.body);
   if (!validatedFields.success) {
-    throw new BadRequestError('Invalid fields!');
+    throw new Error.BadRequestError('Invalid fields!');
   }
 
   const { email, password } = validatedFields.data;
 
-  const user = await getUserByEmail(email);
+  const user = await Query.getUserByEmail(email);
   if (!user || !user.password) {
-    throw new BadRequestError('Invalid credentials!');
+    throw new Error.BadRequestError('Invalid credentials!');
   }
 
   const isPasswordValid = await bcrypt.compare(password, user.password);
   if (!isPasswordValid) {
-    throw new BadRequestError('Invalid credentials!');
+    throw new Error.BadRequestError('Invalid credentials!');
   }
 
-  const accessToken = generateAccessToken(user.id);
-  const refreshToken = generateRefreshToken(user.id);
-  await updateRefreshToken(user.id, refreshToken);
+  const accessToken = Utility.generateAccessToken(user.id);
+  const refreshToken = Utility.generateRefreshToken(user.id);
+  await Query.updateRefreshToken(user.id, refreshToken);
 
   const securityOptions = {
     httpOnly: true,
@@ -89,21 +81,21 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
 export const refresh = asyncHandler(async (req: Request, res: Response) => {
   const refreshToken = req.cookies.refreshToken;
   if (!refreshToken) {
-    throw new UnauthorizedError('Refresh token not found!');
+    throw new Error.UnauthorizedError('Refresh token not found!');
   }
 
-  const payload = verifyRefreshToken(refreshToken);
+  const payload = Utility.verifyRefreshToken(refreshToken);
 
-  const user = await getUserById(payload.id);
+  const user = await Query.getUserById(payload.id);
   if (!user) {
-    throw new UnauthorizedError('User not found!');
+    throw new Error.UnauthorizedError('User not found!');
   }
 
   if (user.refreshToken !== refreshToken) {
-    throw new UnauthorizedError('Invalid refresh token!');
+    throw new Error.UnauthorizedError('Invalid refresh token!');
   }
 
-  const accessToken = generateAccessToken(user.id);
+  const accessToken = Utility.generateAccessToken(user.id);
   const securityOptions = {
     httpOnly: true,
     secure: true,

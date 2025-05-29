@@ -1,23 +1,18 @@
 import { Router } from 'express';
 
-import {
-  createSize,
-  deleteSize,
-  getSize,
-  getSizes,
-  updateSize,
-} from './size.controller';
+import * as Controller from './size.controller';
+
 import { authMiddleware } from '../../middlewares/auth.middleware';
 
-const sizesRoutes: Router = Router();
+const storeSizeRouter: Router = Router();
 
-sizesRoutes.post('/:storeId/sizes', authMiddleware, createSize);
-sizesRoutes.get('/:storeId/sizes', authMiddleware, getSizes);
+storeSizeRouter.post('/:storeId/sizes', authMiddleware, Controller.createSize);
+storeSizeRouter.get('/:storeId/sizes', authMiddleware, Controller.getSizes);
 
-const sizeRoutes: Router = Router();
+const sizeRouter: Router = Router();
 
-sizeRoutes.get('/:sizeId', authMiddleware, getSize);
-sizeRoutes.patch('/:sizeId', authMiddleware, updateSize);
-sizeRoutes.delete('/:sizeId', authMiddleware, deleteSize);
+sizeRouter.get('/:sizeId', authMiddleware, Controller.getSize);
+sizeRouter.patch('/:sizeId', authMiddleware, Controller.updateSize);
+sizeRouter.delete('/:sizeId', authMiddleware, Controller.deleteSize);
 
-export { sizesRoutes, sizeRoutes };
+export { storeSizeRouter, sizeRouter };

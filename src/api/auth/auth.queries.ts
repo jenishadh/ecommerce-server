@@ -1,13 +1,14 @@
 import z from 'zod';
 
+import * as Schema from './auth.schema';
+
 import db from '../../lib/db';
-import { registerSchema, userSchema } from './auth.schema';
 
 export async function createUser({
   name,
   email,
   password,
-}: z.infer<typeof registerSchema>) {
+}: z.infer<typeof Schema.register>) {
   return await db.user.create({
     data: {
       name,
@@ -27,7 +28,7 @@ export async function getUserById(id: string) {
 
 export async function getUserProfile(id: string) {
   const user = await db.user.findUnique({ where: { id } });
-  const { success, data } = userSchema.safeParse(user);
+  const { success, data } = Schema.user.safeParse(user);
   return success ? data : null;
 }
 

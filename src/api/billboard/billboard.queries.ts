@@ -1,6 +1,6 @@
 import db from '../../lib/db';
 
-export async function createBillboardQuery(
+export async function createBillboard(
   storeId: string,
   label: string,
   imageUrl: string
@@ -14,7 +14,7 @@ export async function createBillboardQuery(
   });
 }
 
-export async function getBillboardsQuery(userId: string, storeId: string) {
+export async function getBillboardsById(userId: string, storeId: string) {
   return await db.billboard.findMany({
     where: {
       storeId,
@@ -25,7 +25,7 @@ export async function getBillboardsQuery(userId: string, storeId: string) {
   });
 }
 
-export async function getBillboardQuery(userId: string, billboardId: string) {
+export async function getBillboardById(userId: string, billboardId: string) {
   return await db.billboard.findUnique({
     where: {
       id: billboardId,
@@ -36,7 +36,7 @@ export async function getBillboardQuery(userId: string, billboardId: string) {
   });
 }
 
-export async function updateBillboardQuery(
+export async function updateBillboard(
   userId: string,
   billboardId: string,
   label: string,
@@ -56,10 +56,7 @@ export async function updateBillboardQuery(
   });
 }
 
-export async function deleteBillboardQuery(
-  userId: string,
-  billboardId: string
-) {
+export async function deleteBillboard(userId: string, billboardId: string) {
   return await db.billboard.delete({
     where: {
       id: billboardId,

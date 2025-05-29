@@ -1,6 +1,6 @@
 import db from '../../lib/db';
 
-export async function createCategoryQuery(name: string, storeId: string) {
+export async function createCategory(name: string, storeId: string) {
   return await db.category.create({
     data: {
       name,
@@ -9,7 +9,7 @@ export async function createCategoryQuery(name: string, storeId: string) {
   });
 }
 
-export async function getCategoriesQuery(userId: string, storeId: string) {
+export async function getCategoriesById(userId: string, storeId: string) {
   return await db.category.findMany({
     where: {
       storeId,
@@ -20,7 +20,7 @@ export async function getCategoriesQuery(userId: string, storeId: string) {
   });
 }
 
-export async function getCategoryQuery(userId: string, categoryId: string) {
+export async function getCategoryById(userId: string, categoryId: string) {
   return await db.category.findUnique({
     where: {
       id: categoryId,
@@ -31,7 +31,7 @@ export async function getCategoryQuery(userId: string, categoryId: string) {
   });
 }
 
-export async function updateCategoryQuery(
+export async function updateCategory(
   userId: string,
   categoryId: string,
   name: string
@@ -49,7 +49,7 @@ export async function updateCategoryQuery(
   });
 }
 
-export async function deleteCategoryQuery(userId: string, categoryId: string) {
+export async function deleteCategory(userId: string, categoryId: string) {
   return await db.category.delete({
     where: {
       id: categoryId,

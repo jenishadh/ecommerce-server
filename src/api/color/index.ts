@@ -1,23 +1,22 @@
 import { Router } from 'express';
 
-import {
-  createColor,
-  deleteColor,
-  getColor,
-  getColors,
-  updateColor,
-} from './color.controller';
+import * as Controller from './color.controller';
+
 import { authMiddleware } from '../../middlewares/auth.middleware';
 
-const colorsRoutes: Router = Router();
+const storeColorRouter: Router = Router();
 
-colorsRoutes.post('/:storeId/colors', authMiddleware, createColor);
-colorsRoutes.get('/:storeId/colors', authMiddleware, getColors);
+storeColorRouter.post(
+  '/:storeId/colors',
+  authMiddleware,
+  Controller.createColor
+);
+storeColorRouter.get('/:storeId/colors', authMiddleware, Controller.getColors);
 
-const colorRoutes: Router = Router();
+const colorRouter: Router = Router();
 
-colorRoutes.get('/:colorId', authMiddleware, getColor);
-colorRoutes.patch('/:colorId', authMiddleware, updateColor);
-colorRoutes.delete('/:colorId', authMiddleware, deleteColor);
+colorRouter.get('/:colorId', authMiddleware, Controller.getColor);
+colorRouter.patch('/:colorId', authMiddleware, Controller.updateColor);
+colorRouter.delete('/:colorId', authMiddleware, Controller.deleteColor);
 
-export { colorsRoutes, colorRoutes };
+export { storeColorRouter, colorRouter };

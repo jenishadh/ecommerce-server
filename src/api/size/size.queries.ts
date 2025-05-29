@@ -1,10 +1,6 @@
 import db from '../../lib/db';
 
-export async function createSizeQuery(
-  name: string,
-  value: string,
-  storeId: string
-) {
+export async function createSize(name: string, value: string, storeId: string) {
   return await db.size.create({
     data: {
       name,
@@ -14,7 +10,7 @@ export async function createSizeQuery(
   });
 }
 
-export async function getSizesQuery(userId: string, storeId: string) {
+export async function getSizesById(userId: string, storeId: string) {
   return await db.size.findMany({
     where: {
       storeId,
@@ -25,7 +21,7 @@ export async function getSizesQuery(userId: string, storeId: string) {
   });
 }
 
-export async function getSizeQuery(userId: string, sizeId: string) {
+export async function getSizeById(userId: string, sizeId: string) {
   return await db.size.findUnique({
     where: {
       id: sizeId,
@@ -36,7 +32,7 @@ export async function getSizeQuery(userId: string, sizeId: string) {
   });
 }
 
-export async function updateSizeQuery(
+export async function updateSize(
   userId: string,
   sizeId: string,
   name: string,
@@ -56,7 +52,7 @@ export async function updateSizeQuery(
   });
 }
 
-export async function deleteSizeQuery(userId: string, sizeId: string) {
+export async function deleteSize(userId: string, sizeId: string) {
   return await db.size.delete({
     where: {
       id: sizeId,

@@ -1,34 +1,37 @@
 import { Router } from 'express';
 
-import {
-  createBillboard,
-  deleteBillboard,
-  getBillboard,
-  getBillboards,
-  updateBillboard,
-} from './billboard.controller';
+import * as Controller from './billboard.controller';
+
 import { authMiddleware } from '../../middlewares/auth.middleware';
 import { upload } from '../../middlewares/multer.middleware';
 
-const billboardsRoutes: Router = Router();
+const storeBillboardRouter: Router = Router();
 
-billboardsRoutes.post(
+storeBillboardRouter.post(
   '/:storeId/billboards',
   authMiddleware,
   upload.single('image'),
-  createBillboard
+  Controller.createBillboard
 );
-billboardsRoutes.get('/:storeId/billboards', authMiddleware, getBillboards);
+storeBillboardRouter.get(
+  '/:storeId/billboards',
+  authMiddleware,
+  Controller.getBillboards
+);
 
-const billboardRoutes: Router = Router();
+const billboardRouter: Router = Router();
 
-billboardRoutes.get('/:billboardId', authMiddleware, getBillboard);
-billboardRoutes.patch(
+billboardRouter.get('/:billboardId', authMiddleware, Controller.getBillboard);
+billboardRouter.patch(
   '/:billboardId',
   authMiddleware,
   upload.single('image'),
-  updateBillboard
+  Controller.updateBillboard
 );
-billboardRoutes.delete('/:billboardId', authMiddleware, deleteBillboard);
+billboardRouter.delete(
+  '/:billboardId',
+  authMiddleware,
+  Controller.deleteBillboard
+);
 
-export { billboardsRoutes, billboardRoutes };
+export { storeBillboardRouter, billboardRouter };

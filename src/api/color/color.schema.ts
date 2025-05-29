@@ -1,26 +1,12 @@
-import z from 'zod';
+import { z } from 'zod';
 
-export const nameSchema = z
-  .string()
-  .trim()
-  .min(2, { message: 'Please enter the color name.' });
-
-export const valueSchema = z
-  .string()
-  .trim()
-  .min(7, { message: 'Please enter the hex color value.' })
-  .max(7, { message: 'Please enter the hex color value.' });
-
-export const storeIdSchema = z
-  .string()
-  .trim()
-  .cuid({ message: 'Invalid store id!' })
-  .min(25, { message: 'Invalid store id!' })
-  .max(25, { message: 'Invalid store id!' });
-
-export const colorIdSchema = z
-  .string()
-  .trim()
-  .cuid({ message: 'Invalid color id!' })
-  .min(25, { message: 'Invalid color id!' })
-  .max(25, { message: 'Invalid color id!' });
+export const color = z.object({
+  name: z
+    .string({ required_error: 'Please enter the color name.' })
+    .trim()
+    .min(1, { message: 'Please enter the color name.' }),
+  value: z
+    .string({ required_error: 'Please enter the color value.' })
+    .trim()
+    .min(1, { message: 'Please enter the color value.' }),
+});

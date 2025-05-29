@@ -2,14 +2,15 @@ import express, { type Express } from 'express';
 import cookieParser from 'cookie-parser';
 
 import { errorMiddleware } from './middlewares/error.middleware';
+
 /* IMPORT ROUTES */
-import healthRoutes from './api/healthcheck';
-import authRoutes from './api/auth';
-import storeRoutes from './api/store';
-import { billboardRoutes, billboardsRoutes } from './api/billboard';
-import { categoryRoutes, categoriesRoutes } from './api/category';
-import { colorRoutes, colorsRoutes } from './api/color';
-import { sizeRoutes, sizesRoutes } from './api/size';
+import healthRouter from './api/healthcheck';
+import authRouter from './api/auth';
+import storeRouter from './api/store';
+import { storeBillboardRouter, billboardRouter } from './api/billboard';
+import { storeCategoryRouter, categoryRouter } from './api/category';
+import { storeColorRouter, colorRouter } from './api/color';
+import { storeSizeRouter, sizeRouter } from './api/size';
 
 const app: Express = express();
 
@@ -20,23 +21,23 @@ app.use(cookieParser());
 app.use(express.static('public'));
 
 /* ROUTES */
-app.use('/api/v1/healthcheck', healthRoutes);
+app.use('/api/v1/healthcheck', healthRouter);
 
-app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/auth', authRouter);
 
-app.use('/api/v1/stores', storeRoutes);
+app.use('/api/v1/stores', storeRouter);
 
-app.use('/api/v1/stores', billboardsRoutes);
-app.use('/api/v1/billboards', billboardRoutes);
+app.use('/api/v1/stores', storeBillboardRouter);
+app.use('/api/v1/billboards', billboardRouter);
 
-app.use('/api/v1/stores', categoriesRoutes);
-app.use('/api/v1/categories', categoryRoutes);
+app.use('/api/v1/stores', storeCategoryRouter);
+app.use('/api/v1/categories', categoryRouter);
 
-app.use('/api/v1/stores', colorsRoutes);
-app.use('/api/v1/colors', colorRoutes);
+app.use('/api/v1/stores', storeColorRouter);
+app.use('/api/v1/colors', colorRouter);
 
-app.use('/api/v1/stores', sizesRoutes);
-app.use('/api/v1/sizes', sizeRoutes);
+app.use('/api/v1/stores', storeSizeRouter);
+app.use('/api/v1/sizes', sizeRouter);
 
 // Error middleware - Catch custom api errors
 app.use(errorMiddleware);
